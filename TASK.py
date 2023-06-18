@@ -1,5 +1,4 @@
 import random
-import hashlib
 
 def generate_prime(min_value, max_value, k=10):# Використовується алгоритм перевірки простоти Міллера-Рабіна з параметром k
     while True:
@@ -55,7 +54,6 @@ def prime_factors(n):# Функція для знаходження прости
         factors.append(n)
     return factors
 
-
 def mod_inverse(a, m):# Функція для обчислення оберненого за модулем числа a
     if m == 1:
         return 0
@@ -88,18 +86,14 @@ def decrypt_message(encrypted_blocks, p, a):# Функція для розшиф
 
     return decrypted_message
 
-# Вибір загальносистемних параметрів
-def encrypt_message(message, p, g, b):
+def encrypt_message(message, p, g, b):# Функція для шифрування повідомлення
     block_size = len(str(p)) - 1
 
     encrypted_blocks = []
     for i in range(0, len(message), block_size):
         block = message[i:i+block_size]
 
-        # Хешування блоку
-        block_hash = hashlib.sha256(block.encode()).hexdigest()
-
-        m = int(block_hash, 16)
+        m = int.from_bytes(block.encode(), 'big')
 
         k = random.randint(1, p - 1)
         x = pow(g, k, p)
@@ -109,7 +103,7 @@ def encrypt_message(message, p, g, b):
 
     return encrypted_blocks
 
-# Вибір загальносистемних параметрів
+# Генерація простого числа p і примітивного кореня g
 p = generate_prime(2048, 4096)
 g = generate_primitive_root(p)
 
@@ -118,7 +112,7 @@ a, b = generate_keys(p, g)
 print("Private Key (a):", a)
 print("Public Key (b):", b)
 
-# Зашифрування повідомлення
+# Підписання повідомлення
 message = "Hello, world! This is a test message."
 encrypted_blocks = encrypt_message(message, p, g, b)
 print("Encrypted Blocks:", encrypted_blocks)
@@ -127,13 +121,14 @@ print("Encrypted Blocks:", encrypted_blocks)
 decrypted_message = decrypt_message(encrypted_blocks, p, a)
 print("Decrypted Message:", decrypted_message)
 
-# Перевірка коректності розшифрованого повідомлення
+# Перевірка правильності розшифрування
 print("Decrypted Message is correct:", decrypted_message == message)
 
-# Переконання в правильності розшифрованого повідомлення при пошкодженні даних
+# Спроба змінити шифрований блок
 corrupted_blocks = encrypted_blocks.copy()
 corrupted_blocks[0] = (corrupted_blocks[0][0], corrupted_blocks[0][1] + 1)
 
+# Розшифрування пошкодженого повідомлення
 corrupted_decrypted_message = decrypt_message(corrupted_blocks, p, a)
 print("Corrupted Decrypted Message:", corrupted_decrypted_message)
 
