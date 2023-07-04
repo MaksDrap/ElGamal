@@ -128,6 +128,27 @@ def sign_message(message, p, g, a):# Розмір блоку для корект
 
     return signed_blocks
 
+def verify_message(message, signed_blocks, p, g, b):
+    block_size = (len(str(p)) - 1) // 3
+
+    for i in range(0, len(message), block_size):
+        block = message[i:i+block_size]
+
+        m = 0
+        for c in block:
+            m = m * 1000 + ord(c)  
+
+        x, y = signed_blocks[i // block_size]
+        left_side = pow(g, m, p)
+        right_side = (pow(b, x, p) * pow(x, y, p)) % p
+
+        if left_side != right_side:
+            return False
+
+    # Перевірка, чи всі блоки мають правильний підпис
+    return True
+
+
 # Генерація простого числа p та примітивного кореня g
 p = generate_prime(2048, 4096)
 g = generate_primitive_root(p)
@@ -162,3 +183,6 @@ print("Corrupted Decrypted Message:", corrupted_decrypted_message)
 
 # Перевірка повернення "false" при пошкодженні даних
 print("Signature verification failed:", corrupted_decrypted_message != message)
+
+signature_verification = verify_message(message, signed_blocks, p, g, b)
+print("Signature verification:", signature_verification)
