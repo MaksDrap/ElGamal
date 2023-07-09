@@ -1,4 +1,5 @@
 import random
+import math
 
 def generate_prime(min_value, max_value, k=10):# Генерація випадкового простого числа у заданому діапазоні
     while True:
@@ -109,7 +110,7 @@ def encrypt_message(message, p, g, b):# Зашифрування повідом�
 
     return encrypted_blocks
 
-def sign_message(message, p, g, a):# Розмір блоку для коректного підписування
+def sign_message(message, p, g, a):
     block_size = (len(str(p)) - 1) // 3
 
     signed_blocks = []
@@ -120,13 +121,18 @@ def sign_message(message, p, g, a):# Розмір блоку для корект
         for c in block:
             m = m * 1000 + ord(c)
 
-        k = random.randint(1, p - 1)
-        x = pow(g, k, p)
-        y = (pow(a, k, p) * m) % p
+        k = random.randint(1, p - 2)
+        while math.gcd(k, p - 1) != 1:
+            k = random.randint(1, p - 2)
 
-        signed_blocks.append((x, y))
+        r = pow(g, k, p)
+        k_inv = mod_inverse(k, p - 1)
+        s = (k_inv * (m - a * r)) % (p - 1)
+
+        signed_blocks.append((r, s))
 
     return signed_blocks
+
 
 def verify_message(message, signed_blocks, p, g, b):
     block_size = (len(str(p)) - 1) // 3
@@ -136,7 +142,7 @@ def verify_message(message, signed_blocks, p, g, b):
 
         m = 0
         for c in block:
-            m = m * 1000 + ord(c)  
+            m = m * 1000 + ord(c)
 
         x, y = signed_blocks[i // block_size]
         left_side = pow(g, m, p)
